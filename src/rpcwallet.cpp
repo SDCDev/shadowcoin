@@ -302,39 +302,40 @@ Value sendtoaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 5)
         throw runtime_error(
-            "sendtoaddress <shadowcoinaddress> <amount> [narration] [comment] [comment-to]\n"
+            "sendtoaddress <nightmareaddress> <amount> [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
-
+ 
     CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ShadowCoin address");
-
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Nightmare address");
+ 
     // Amount
     int64_t nAmount = AmountFromValue(params[1]);
-    
+ 
     CWalletTx wtx;
-    
     std::string sNarr;
+/*
     if (params.size() > 2 && params[2].type() != null_type && !params[2].get_str().empty())
         sNarr = params[2].get_str();
-    
+ 
     if (sNarr.length() > 24)
         throw runtime_error("Narration must be 24 characters or less.");
-    
+*/
     // Wallet comments
+    if (params.size() > 2 && params[2].type() != null_type && !params[2].get_str().empty())
+        wtx.mapValue["comment"] = params[2].get_str();
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
-        wtx.mapValue["comment"] = params[3].get_str();
-    if (params.size() > 4 && params[4].type() != null_type && !params[4].get_str().empty())
-        wtx.mapValue["to"]      = params[4].get_str();
-
+        wtx.mapValue["to"]      = params[3].get_str();
+ 
+    sNarr = "";
     if (pwalletMain->IsLocked())
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
-
+ 
     string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, sNarr, wtx);
     if (strError != "")
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
-
+ 
     return wtx.GetHash().GetHex();
 }
 
