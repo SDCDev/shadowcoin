@@ -2315,7 +2315,6 @@ Value sendsdctoanon(const Array& params, bool fHelp)
         throw runtime_error(
             "sendsdctoanon <stealth_address> <amount> [narration] [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
-            "<ring_size> is a number of outputs of the same amount to include in the signature"
             + HelpRequiringPassphrase());
 
     if (pwalletMain->IsLocked())
