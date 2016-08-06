@@ -139,6 +139,8 @@ public:
         SecMsgStored smsgStored = inboxHdr;
         MessageData msg;
         QString label;
+        QString labelTo;
+        QString groupPrefix = QString::fromStdString("group_");
         QDateTime sent_datetime;
         QDateTime received_datetime;
 
@@ -146,7 +148,22 @@ public:
         if (SecureMsgDecrypt(false, smsgStored.sAddrTo, &smsgStored.vchMessage[0], &smsgStored.vchMessage[SMSG_HDR_LEN], nPayload, msg) == 0)
         {
             label = parent->getWalletModel()->getAddressTableModel()->labelForAddress(QString::fromStdString(msg.sFromAddress));
-
+            labelTo = parent->getWalletModel()->getAddressTableModel()->labelForAddress(QString::fromStdString(msg.sToAddress)); //returns "" if not found.
+            
+            std::string publicKey;
+            int duplicateMessageFromOutBox = SecureMsgGetLocalPublicKey(msg.sFromAddress, publicKey);
+            
+            if((labelTo.startsWith(groupPrefix)) && (duplicateMessageFromOutBox == 4)){
+                //a message has been received to our group but it was one of our own. Just don't process this at all. 
+                //MAY CAUSE LOOP?
+                return; 
+            } else if(labelTo.startsWith(groupPrefix) && (duplicateMessageFromOutBox == 0)) {
+                //a message has been received to our group and it was NOT one of our own. Yet retrieving the public key of it was succesful.
+                //Change the labelFrom to labelTo. Throws all the group chat messages together, might ruin nickname labels tho.
+                label = labelTo;
+            } 
+                //the message was not to our group so process as normal.
+            
             sent_datetime    .setTime_t(msg.timestamp);
             received_datetime.setTime_t(smsgStored.timeReceived);
 
