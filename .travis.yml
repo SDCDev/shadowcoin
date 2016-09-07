@@ -25,8 +25,8 @@ install:
 script:
     - cd $TRAVIS_BUILD_DIR/src
     - make $MAKEJOBS -f makefile.unix STATIC=1 OPENSSL_INCLUDE_PATH="$DEPSDIR/include" OPENSSL_LIB_PATH="$DEPSDIR/lib" $MAKEOPTS shadowcoind USE_UPNP=1 BOOST_LIB_SUFFIX="-mt" DEBUGFLAGS=
-	- strip shadowcoind
-	- cp shadowcoind $BINDIR/
+    - strip shadowcoind
+    - cp shadowcoind $BINDIR/
 	
     #- install -s shadowcoind $BINDIR/
     - cd ..
@@ -34,7 +34,7 @@ script:
     - sed -i 's^,-whole-archive -lleveldb -Wl,^,-lleveldb,^' Makefile
     - make $MAKEJOBS
     - strip shadow
-	- cp shadow $BINDIR/
+    - cp shadow $BINDIR/
     #- install shadow $BINDIR/
     #- cd $BINDIR
     #- zip shadow.linux.zip shadow # shadowcoind
@@ -42,9 +42,9 @@ script:
 #    - make -j2
 #    - cd src && RELEASE=1 STATIC=TRUE make -j2 -f makefile.unix && strip shadowcoind
 after_script:
-	- cd $BINDIR/
-	- zip shadow.linux.zip shadow shadowcoind
-	- curl --upload shadow.linux.zip https://transfer.sh/shadow.linux.zip
+    - cd $BINDIR/
+    - zip shadow.linux.zip shadow shadowcoind
+    - curl --upload shadow.linux.zip https://transfer.sh/shadow.linux.zip
 #deploy:
 #  provider: releases
 #  api_key: "GITHUB OAUTH TOKEN"
