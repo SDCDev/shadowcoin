@@ -27,7 +27,6 @@ script:
     - make $MAKEJOBS -f makefile.unix STATIC=1 OPENSSL_INCLUDE_PATH="$DEPSDIR/include" OPENSSL_LIB_PATH="$DEPSDIR/lib" $MAKEOPTS shadowcoind USE_UPNP=1 BOOST_LIB_SUFFIX="-mt" DEBUGFLAGS=
     - strip shadowcoind
     - cp shadowcoind $BINDIR
-	
     #- install -s shadowcoind $BINDIR/
     - cd ..
     - qmake INCLUDEPATH="$DEPSDIR/include" LIBS="-L$DEPSDIR/lib" BOOST_LIB_SUFFIX="-mt" RELEASE=1 USE_QRCODE=1
