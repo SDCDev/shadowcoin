@@ -455,12 +455,6 @@ void ShadowBridge::clearRecipients()
 
 bool ShadowBridge::sendCoins(bool fUseCoinControl, QString sChangeAddr)
 {
-    WalletModel::UnlockContext ctx(window->walletModel->requestUnlock());
-
-    // Unlock wallet was cancelled
-    if(!ctx.isValid())
-        return false;
-
     int inputTypes = -1;
     int nAnonOutputs = 0;
     int ringSizes = -1;
@@ -562,6 +556,12 @@ bool ShadowBridge::sendCoins(bool fUseCoinControl, QString sChangeAddr)
         } else
             CoinControlDialog::coinControl->destChange = CNoDestination();
     };
+
+    WalletModel::UnlockContext ctx(window->walletModel->requestUnlock());
+
+    // Unlock wallet was cancelled
+    if(!ctx.isValid())
+        return false;
 
     if (inputTypes == 1 || nAnonOutputs > 0)
         sendstatus = window->walletModel->sendCoinsAnon(recipients, fUseCoinControl ? CoinControlDialog::coinControl : NULL);

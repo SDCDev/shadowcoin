@@ -588,6 +588,7 @@ bool SecMsgDB::EraseSmesg(uint8_t* chKey)
 void ThreadSecureMsg()
 {
     // -- bucket management thread
+    SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
 
     uint32_t nLoop = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
@@ -604,11 +605,11 @@ void ThreadSecureMsg()
         int64_t cutoffTime = now - SMSG_RETENTION;
         {
             LOCK(cs_smsg);
-
-            for (std::map<int64_t, SecMsgBucket>::iterator it(smsgBuckets.begin()); it != smsgBuckets.end(); it++)
+            for (std::map<int64_t, SecMsgBucket>::iterator it(smsgBuckets.begin()); it != smsgBuckets.end(); )
             {
                 //if (fDebugSmsg)
-                //    LogPrintf("Checking bucket %d", size %u \n", it->first, it->second.setTokens.size());
+                //    LogPrintf("Checking bucket %d, size %u \n", it->first, it->second.setTokens.size());
+
                 if (it->first < cutoffTime)
                 {
                     if (fDebugSmsg)
@@ -642,24 +643,27 @@ void ThreadSecureMsg()
 
                     smsgBuckets.erase(it);
                 } else
-                if (it->second.nLockCount > 0) // -- tick down nLockCount, so will eventually expire if peer never sends data
                 {
-                    it->second.nLockCount--;
-
-                    if (it->second.nLockCount == 0)     // lock timed out
+                    if (it->second.nLockCount > 0) // -- tick down nLockCount, so will eventually expire if peer never sends data
                     {
-                        vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // cs_vNodes
+                        it->second.nLockCount--;
 
-                        it->second.nLockPeerId = 0;
-                    }; // if (it->second.nLockCount == 0)
+                        if (it->second.nLockCount == 0)     // lock timed out
+                        {
+                            vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // cs_vNodes
 
-                }; // ! if (it->first < cutoffTime)
+                            it->second.nLockPeerId = 0;
+                        }; // if (it->second.nLockCount == 0)
+                    }; // ! if (it->first < cutoffTime)
+                    ++it;
+                }
             };
         } // cs_smsg
 
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++)
         {
             NodeId nPeerId = it->second;
+            uint32_t fExists = 0;
 
             if (fDebugSmsg)
                 LogPrintf("Lock on bucket %d for peer %d timed out.\n", it->first, nPeerId);
@@ -672,6 +676,9 @@ void ThreadSecureMsg()
                 {
                     if (pnode->id != nPeerId)
                         continue;
+
+                    fExists = 1; //found in vNodes
+
                     LOCK(pnode->smsgData.cs_smsg_net);
                     int64_t ignoreUntil = GetTime() + SMSG_TIME_IGNORE;
                     pnode->smsgData.ignoreUntil = ignoreUntil;
@@ -687,6 +694,9 @@ void ThreadSecureMsg()
                     break;
                 };
             } // cs_vNodes
+
+            if(fDebugSmsg)
+                LogPrintf("shadow-smsg thread: ignoring - looked peer %d, status on search %u\n", nPeerId, fExists);
         };
 
         MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
@@ -3256,7 +3266,7 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     {
         if (sha256Hash[31] == 0
             && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) || (1<<1) || (1<<2)) ))
+            && (~(sha256Hash[29]) & ((1<<0) | (1<<1) | (1<<2)) ))
         {
             if (fDebugSmsg)
                 LogPrintf("Hash Valid.\n");
@@ -3338,7 +3348,7 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
         if (sha256Hash[31] == 0
             && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) || (1<<1) || (1<<2)) ))
+            && (~(sha256Hash[29]) & ((1<<0) | (1<<1) | (1<<2)) ))
         //    && sha256Hash[29] == 0)
         {
             found = true;

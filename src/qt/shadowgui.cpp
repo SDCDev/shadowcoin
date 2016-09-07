@@ -86,7 +86,7 @@ ShadowGUI::ShadowGUI(QWidget *parent):
     setCentralWidget(webView);
 
     resize(1280, 720);
-    setWindowTitle(tr("Shadow") + " - " + tr("Client"));
+    setWindowTitle(tr("Umbra") + " - " + tr("Client"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/shadow"));
     setWindowIcon(QIcon(":icons/shadow"));
@@ -264,7 +264,7 @@ void ShadowGUI::setClientModel(ClientModel *clientModel)
             if (sMode.length() > 0)
                 sMode[0] = sMode[0].toUpper();
 
-            setWindowTitle(tr("ShadowCoin") + " - " + tr("Wallet") + ", " + sMode);
+            setWindowTitle(tr("Umbra") + " - " + tr("Wallet") + ", " + sMode);
         };
 
         // Replace some strings and icons, when using the testnet
@@ -279,7 +279,7 @@ void ShadowGUI::setClientModel(ClientModel *clientModel)
 #endif
             if(trayIcon)
             {
-                trayIcon->setToolTip(tr("ShadowCoin client") + QString(" ") + tr("[testnet]"));
+                trayIcon->setToolTip(tr("Umbra client") + QString(" ") + tr("[testnet]"));
                 trayIcon->setIcon(QIcon(":/icons/shadow_testnet"));
                 toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
             }
@@ -353,7 +353,7 @@ void ShadowGUI::createTrayIcon()
     trayIcon = new QSystemTrayIcon(this);
     trayIconMenu = new QMenu(this);
     trayIcon->setContextMenu(trayIconMenu);
-    trayIcon->setToolTip(tr("Shadow client"));
+    trayIcon->setToolTip(tr("Umbra client"));
     trayIcon->setIcon(QIcon(":/icons/shadow"));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
           this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
@@ -819,6 +819,7 @@ void ShadowGUI::setEncryptionStatus(int status)
         encryptionIcon.removeAttribute("style");
         encryptionIcon.removeClass("fa-unlock");
         encryptionIcon.removeClass("no-encryption");
+        encryptionIcon.removeClass("encryption-stake");
         encryptionIcon.   addClass("fa-lock");
         encryptionIcon.   addClass("encryption");
         toggleLockIcon.removeClass("fa-lock");
