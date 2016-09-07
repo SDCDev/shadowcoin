@@ -21,7 +21,7 @@ install:
     - export PATH=$DEPSDIR/host/bin:$PATH
 
     - mkdir -p $BINDIR $DEPSDIR
-    - cd $DEPSDIR && tar xf $INDIR/shadow-deps-linux.tar.xz
+    - cd $DEPSDIR && tar xf $BINDIR/shadow-deps-linux.tar.xz
 script:
     - cd $TRAVIS_BUILD_DIR/src
     - make $MAKEJOBS -f makefile.unix STATIC=1 OPENSSL_INCLUDE_PATH="$DEPSDIR/include" OPENSSL_LIB_PATH="$DEPSDIR/lib" $MAKEOPTS shadowcoind USE_UPNP=1 BOOST_LIB_SUFFIX="-mt" DEBUGFLAGS=
