@@ -34,8 +34,8 @@ script:
     - install -s umbra $BINDIR/
 after_script:
     - cd $BINDIR
-    - zip shadow.linux.zip shadow shadowcoind
-    - curl --upload shadow.linux.zip https://transfer.sh/shadow.linux.zip
+    - zip umbra.linux.zip umbra shadowcoind
+    - curl --upload umbra.linux.zip https://transfer.sh/umbra.linux.zip
 #deploy:
 #  provider: releases
 #  api_key: "GITHUB OAUTH TOKEN"
