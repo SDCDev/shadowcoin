@@ -3799,6 +3799,7 @@ bool CWallet::CreateAnonOutputs(CStealthAddress* sxAddress, int64_t nValue, std:
         scriptSendTo << cpkTo;
         scriptSendTo << pkEphem;
 
+        //segmentation fault occurs here when calling estimateanonfee
         if (i == 0 && sNarr.length() > 0)
         {
             std::vector<unsigned char> vchNarr;
@@ -5148,7 +5149,7 @@ bool CWallet::ProcessLockedAnonOutputs()
     return true;
 };
 
-bool CWallet::EstimateAnonFee(int64_t nValue, int nRingSize, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, std::string& sError)
+bool CWallet::EstimateAnonFee(int64_t nValue, int64_t nMaxAmount, int nRingSize, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, std::string& sError)
 {
     if (fDebugRingSig)
         LogPrintf("EstimateAnonFee()\n");
@@ -5168,7 +5169,13 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int nRingSize, std::string& sNarr,
         return false;
     };
 
-    if (nValue + nTransactionFee > GetShadowBalance())
+    if (nMaxAmount <= 0)
+    {
+        sError = "Invalid max amount";
+        return false;
+    };
+
+    if (nValue + nTransactionFee > nMaxAmount)
     {
         sError = "Insufficient shadow funds";
         return false;
@@ -5195,6 +5202,69 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int nRingSize, std::string& sNarr,
     nFeeRet = nFeeRequired;
 
     return true;
+};
+
+int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr, CWalletTx& wtx, std::string& sError)
+{
+
+    if (fDebugRingSig)
+        LogPrintf("EstimateAnonFeeIncluded()\n");
+
+    if (nNodeMode != NT_FULL)
+    {
+        sError = _("Error: Must be in full mode.");
+
+        if(fDebugRingSig)
+            LogPrintf("EstimateAnonFeeIncluded: must be full node");
+
+        return 0;
+    };
+
+    if (nMaxAmount <= 0)
+    {
+        sError = "Invalid amount";
+
+        if(fDebugRingSig)
+            LogPrintf("EstimateAnonFeeIncluded: Invalid amount");
+
+        return 0;
+    };
+
+    if (nMaxAmount > GetShadowBalance())
+    {
+        sError = "Insufficient funds";
+
+        if(fDebugRingSig)
+            LogPrintf("EstimateAnonFeeIncluded: Insufficient balance");
+
+        return 0;
+    };
+
+
+    int64_t nFeeRet = 0;
+    int64_t nValue = nMaxAmount - nTransactionFee;
+    int nFailSafe = 5000;
+
+    while(!EstimateAnonFee(nValue, nMaxAmount, nRingSize, sNarr, wtx, nFeeRet, sError) && nFailSafe > 0){
+        nValue = nValue - (MIN_TX_FEE_ANON);
+        nFailSafe--;
+
+    }
+
+    //at least 50 SDT as fee, something obviously went wrong
+    if(nFailSafe == 0){
+        LogPrintf("EstimateAnonFeeIncluded: nFaileSafe = 0");
+        return 0;
+    }
+
+    if (fDebugRingSig){
+        LogPrintf("EstimateAnonFeeIncluded: Found value = %d\n", nValue);
+        LogPrintf("EstimateAnonFeeIncluded: Fee = %d\n", nFeeRet);
+        LogPrintf("EstimateAnonFeeIncluded: Dust = %d\n", (GetShadowBalance() - nValue - nFeeRet));
+    }
+
+
+    return nFeeRet;
 };
 
 int CWallet::ListUnspentAnonOutputs(std::list<COwnedAnonOutput>& lUAnonOutputs, bool fMatureOnly)
