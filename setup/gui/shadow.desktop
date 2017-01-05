@@ -4,4 +4,4 @@ Comment=decentralized peer-to-peer platform
 Exec=shadow
 Terminal=false
 Type=Application
-Icon=setup/gui/shadow.png
+Icon=${SNAP}/meta/gui/shadow.png
