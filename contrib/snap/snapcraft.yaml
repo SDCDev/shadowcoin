@@ -19,7 +19,7 @@ apps:
 
 parts:
   shadow:
-    source: .
+    source: ../../
     plugin: qmake
     qt-version: qt5
     build-packages:
