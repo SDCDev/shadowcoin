@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Shadow
+Comment=decentralized peer-to-peer platform
+Exec=shadow
+Terminal=false
+Type=Application
+Icon=${SNAP}/meta/gui/shadow.png
